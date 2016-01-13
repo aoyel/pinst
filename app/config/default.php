@@ -7,11 +7,11 @@ $config = [
         'server' => [
             'class' => '\pinst\server\Server',
             'host' => '0,0,0,0',
-            'port' => 3927,
+            'port' => 7560,
             'pid_file'=>APP_PATH."/app/runtime/server.pid",
             'config' => [
                 'worker_num' => 1,
-                'daemonize'=>false,
+                'daemonize'=>true,
                 'log_file' => APP_PATH . "/app/runtime/server.log"
             ]
         ],
@@ -26,16 +26,16 @@ $config = [
         'logger'=>[
             'class'=>'\pinst\log\FileLogger',
         ],
-        'db' => [
-            'class' => '\pinst\db\schema\Mysqli',
-            'host' => 'localhost',
-            'port' => 3306,
-            'username'=>'root',
-            'password'=>'root',
-            'database'=>'angel',
-            'charset'=>'utf-8',
-            'prefix'=>'tbl_'
-        ]
+//        'db' => [
+//            'class' => '\pinst\db\schema\Mysqli',
+//            'host' => 'localhost',
+//            'port' => 3306,
+//            'username'=>'root',
+//            'password'=>'root',
+//            'database'=>'angel',
+//            'charset'=>'utf-8',
+//            'prefix'=>'tbl_'
+//        ]
     ]
 ];
 return $config;
