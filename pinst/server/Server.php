@@ -13,7 +13,7 @@ class Server extends \pinst\base\Object
      * @var \swoole_server
      */
     protected $server = null;
-    protected $dispatch = null;
+    protected $handel = null;
 
 
     public function init(){
@@ -24,8 +24,8 @@ class Server extends \pinst\base\Object
         $this->pid_file = $filename;
     }
 
-    public function setDispatch($dispatch){
-        $this->dispatch = $dispatch;
+    public function setHandel($handel){
+        $this->handel = $handel;
         return $this;
     }
 
@@ -35,21 +35,20 @@ class Server extends \pinst\base\Object
     public function run(){
         $this->server = new \swoole_server($this->host, $this->port,SWOOLE_BASE, SWOOLE_SOCK_TCP);
         $this->server->set($this->config);
-        $this->dispatch->setServer($this->server);
         $this->server->on('Start', [$this, 'onMasterStart']);
         $this->server->on('Shutdown', [$this, 'onMasterStop']);
         $this->server->on('ManagerStop', [$this, 'onManagerStop']);
         $this->server->on('WorkerStart', [$this, 'onWorkerStart']);
-        $this->server->on('Connect', [$this->dispatch, 'onConnect']);
-        $this->server->on('Receive', [$this->dispatch, 'onReceive']);
-        $this->server->on('Close', [$this->dispatch, 'onClose']);
-        $this->server->on('WorkerStop', [$this->dispatch, 'onStop']);
-        if(is_callable([$this->dispatch,"onTimer"])){
-            $this->server->on("Timer",[$this->dispatch,"onTimer"]);
+        $this->server->on('Connect', [$this->handel, 'onConnect']);
+        $this->server->on('Receive', [$this->handel, 'onReceive']);
+        $this->server->on('Close', [$this->handel, 'onClose']);
+        $this->server->on('WorkerStop', [$this->handel, 'onStop']);
+        if(is_callable([$this->handel,"onTimer"])){
+            $this->server->on("Timer",[$this->handel,"onTimer"]);
         }
-        if(is_callable([$this->dispatch, 'onTask'])){
-            $this->server->on("Timer",[$this->dispatch,"onTimer"]);
-            $this->server->on("Finish",[$this->dispatch,"onFinish"]);
+        if(is_callable([$this->handel, 'onTask'])){
+            $this->server->on("Timer",[$this->handel,"onTimer"]);
+            $this->server->on("Finish",[$this->handel,"onFinish"]);
         }
         $this->server->start();
     }
@@ -78,8 +77,8 @@ class Server extends \pinst\base\Object
 
     public function onWorkerStart($server, $worker_id){
         $this->loadComponent();
-        if(method_exists($this->dispatch,"onStart")){
-            $this->dispatch->onStart($server,$worker_id);
+        if(method_exists($this->handel,"onStart")){
+            $this->handel->onStart($server,$worker_id);
         }
     }
 

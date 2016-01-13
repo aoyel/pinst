@@ -2,231 +2,200 @@
 
 namespace pinst\handel;
 
-use pinst\base\Exception;
-use pinst\base\Object;
-use pinst\model\BaseClient;
-use pinst\model\Client;
-use pinst\model\Connection;
-use pinst\utils\Console;
-use pinst\exception\InvalidCallException;
 
-class BaseHandel extends Object
+use pinst\base\Object;
+use pinst\model\Connection;
+
+class BaseHandel extends Object implements HandelInterface
 {
-    protected $server = null;
     protected $connections = [];
 
     /**
-     * when work thread is start call this function
-     * @param $server swoole_server object
-     * @param $work_id work id
+     * when work start calllback
+     * @param \swoole_server $server
+     * @param int $work_id
      */
-    public function onStart($server,$work_id){
-        $this->server = $server;
-        if(method_exists($this,"afterStart")){
-            call_user_func_array([$this,"afterStart"],[$server,$work_id]);
-        }
+    public function onStart(\swoole_server $server, $work_id){
     }
 
-    public function beforeConnect($server, $client_id, $from_id){
+    /**
+     * before client connection
+     * @param \swoole_server $server
+     * @param $client_id
+     * @param $from_id
+     * @return bool
+     */
+    public function beforeConnect(\swoole_server $server, $client_id, $from_id){
         return true;
     }
 
     /**
-     * when client is connection call this fucntion
-     * @param $server swoole_server object
-     * @param $client_id client id
-     * @param $from_id form id
+     * prepare connection info, if get connection info success push connection to connection list
+     * @param $server \swoole_server object
+     * @param $id connection id
      */
-    public function onConnect($server, $client_id, $from_id){
-        if(!$this->beforeConnect($server,$client_id,$from_id)){
-            $server->close($client_id);
-            return;
-        }
-        if(APP_DEBUG){
-            Console::info("have a new client[{$client_id}] connection");
-        }
-        $this->prepareConnection($client_id);
-        return $this->afterConnect($server,$client_id,$from_id);
-    }
-
-    public function afterConnect($server, $client_id, $from_id){
-
-    }
-
-    /**
-     *
-     * @param $client_id
-     */
-    protected function prepareConnection($client_id){
-        if(!isset($this->connections[$client_id])){
+    protected function prepareConnection($server,$id){
+        if(!isset($this->connections[$id])){
             $connection = new Connection();
-            $clientInfo = $this->server->connection_info($client_id);
+            $connection->setServer($server);
+            $clientInfo = $server->connection_info($id);
             foreach($clientInfo as $k=>$v){
                 $connection->setProperty($k,$v);
             }
-            $connection->setId($client_id);
-            $this->connections[$client_id] = $connection;
+            $connection->setId($id);
+            $this->connections[$id] = $connection;
         }
     }
 
     /**
-     * remove connection from connection list
+     * when client connection callback
+     * @param \swoole_server $server
+     * @param int $client_id
+     * @param int $from_id
+     */
+    public function onConnect(\swoole_server $server, $client_id, $from_id)
+    {
+        if(!$this->beforeConnect($server, $client_id, $from_id)){
+            return ;
+        }
+        $this->prepareConnection($server,$client_id);
+        $this->afterConnect($server, $client_id, $from_id);
+    }
+
+    /**
+     * after client connection callback
+     * @param \swoole_server $server
      * @param $client_id
+     * @param $from_id
+     * @return bool
      */
-    protected function removeConnection($client_id){
-        if(isset($this->connections[$client_id])){
-            $this->connections[$client_id] = null;
-            unset($this->connections[$client_id]);
-        }
-    }
-
-
-    /**
-     * get connection object by client id
-     * @param $client_id client id
-     * @return null| \pinst\model\Connection
-     */
-    public function getConnection($client_id){
-        if(isset($this->connections[$client_id]))
-            return $this->connections[$client_id];
-        return null;
-    }
-
-
-    public function beforeReceive($server, $client_id, $from_id, $data){
-        $connection = $this->getConnection($client_id);
-        if(!$connection){
-            return true;
-        }
-        $connection->pushMessage($data);
+    public function afterConnect(\swoole_server $server, $client_id, $from_id){
         return true;
     }
 
     /**
-     * when client send new message this function is call
-     * @param $server swoole_server object
-     * @param $client_id client id
-     * @param $from_id form id
-     * @param $data receive message data
+     * before message process callback
+     * @param \swoole_server $server
+     * @param \pinst\model\Connection $connection
+     * @param $from_id
+     * @param $data
+     * @return bool
      */
-    public function onReceive($server, $client_id, $from_id, $data){
+    public function beforeReceive(\swoole_server $server, $connection, $from_id, &$data){
+        return true;
+    }
 
-        if(!$this->beforeReceive($server, $client_id, $from_id, $data)){
+    /**
+     * receive callback
+     * @param \swoole_server $server
+     * @param client $client_id
+     * @param from $from_id
+     * @param $data
+     */
+    public function onReceive(\swoole_server $server, $client_id, $from_id, $data)
+    {
+        $connection = $this->getConnection($client_id);
+        if(!$this->beforeReceive($server, $connection, $from_id, $data)){
             return;
         }
-        if(APP_DEBUG){
-            Console::println("recv new message from client[{$client_id}],message data is:\n<<<\n{$data}\n>>>");
-        }
-        $connection = $this->getConnection($client_id);
-        $connection->setServer($server);
         $this->onMessage($server,$connection,$data);
-        return $this->afterReceive($server, $client_id, $from_id, $data);
-    }
-
-    public function afterReceive($server, $client_id, $from_id, $data){
-
-    }
-
-
-
-
-    /**
-     * when client is close call this function
-     * @param $server swoole_server object
-     * @param $client_id client is
-     * @param $from_id from id
-     */
-    public function onClose($server,$client_id,$from_id){
-        if(method_exists($this,"beforeClose")){
-            call_user_func_array([$this,"beforeClose"],[$server,$client_id,$from_id]);
-        }
-        if(APP_DEBUG){
-            Console::println("client {$client_id} close,current have client count is:".$this->getConnectionCount());
-        }
-        $this->removeConnection($client_id);
-        if(method_exists($this,"afterClose")){
-            call_user_func_array([$this,"afterClose"],[$server,$client_id,$from_id]);
-        }
-    }
-
-    public function beforeClose($server,$client_id,$from_id){
-        $connection = $this->getConnection($client_id);
-        if(!$connection){
-            return true;
-        }
-        $connection->store();
+        $this->afterReceive($server, $connection, $from_id, $data);
     }
 
     /**
-     * get client list count
-     * @return int
+     * when message was processed callbck
+     * @param \swoole_server $server
+     * @param \pinst\model\Connection $connection
+     * @param $from_id
+     * @param $data
+     * @return bool
      */
-    public function getConnectionCount(){
-        return count($this->server->connections);
+    public function afterReceive(\swoole_server $server, $connection, $from_id, $data){
+        return true;
+    }
+
+
+    public function beforeClose($server, $client_id, $from_id){
     }
 
     /**
-     * when work is stop
-     * @param $server
-     * @param $work_id
+     * remove connection object from connection list
+     * @param $id connection id
      */
-    public function onStop($server,$work_id){
-        if(APP_DEBUG){
-            Console::println("work {$work_id} is stop");
+    protected function removeConnection($id){
+        if(isset($this->connections[$id])){
+            $this->connections[$id] = null;
+            unset($this->connections[$id]);
         }
     }
 
     /**
-     * send file to client
-     * @param $client_id client id
-     * @param $filename file name
-     * @return mixed
-     * @throws InvalidCallException
+     * get connection object
+     * @param $id connection id
+     * @return null|\pinst\model\Connection if has connection return connection otherwise return null
      */
-    public function sendFile($client_id,$filename){
-        if(!file_exists($filename)){
-            throw new InvalidCallException("file is not exists!");
+    public function getConnection($id){
+        if(isset($this->connections[$id])){
+            return $this->connections[$id];
         }
-        return $this->server->sendFile($client_id,$filename);
+        return null;
     }
 
     /**
-     * send message to client
-     * @param $client_id client id
-     * @param $message message content
-     * @return mixed
+     * when connection close callback
+     * @param \swoole_server $server
+     * @param $client_id
+     * @param $from_id
      */
-    public function send($client_id, $message){
-        return $this->server->send($client_id, $message);
-    }
-
-    /**
-     * broadcast message
-     * @param $message
-     * @param null $client_id
-     */
-    public function broadcast($message,$client_id = null){
-        $ids = $this->server->connections;
-        foreach($ids as $id){
-            if($id != $client_id)
-                $this->server->send($id, $message);
+    public function onClose(\swoole_server $server, $client_id, $from_id)
+    {
+        if(!$this->beforeClose($server, $client_id, $from_id)){
+            return ;
         }
-    }
-    /**
-     * @param $task task name
-     * @param int $work_id dest work id
-     */
-    public function task($task, $work_id = -1){
-        $this->server->task($task, $work_id);
+        $this->afterClose($server, $client_id, $from_id);
     }
 
     /**
-     * message event
-     * @param $server \swoole_server
-     * @param $connection \pinst\model\Connection client connection object
-     * @param $data string message data
+     * after application close callback
+     * @param \swoole_server $server
+     * @param $client_id
+     * @param $from_id
      */
-    protected function onMessage($server, $connection, $data){
+    public function afterClose($server, $client_id, $from_id){
+    }
+
+
+    public function onStop(\swoole_server $server, $work_id)
+    {
+
+    }
+
+    public function onTimer(\swoole_server $server, $interval)
+    {
+    }
+
+    public function onTask(\swoole_server $server, $task_id, $from_id, $data)
+    {
+
+    }
+
+    public function onFinish(\swoole_server $server, $task_id, $data)
+    {
+
+    }
+
+    public function onPipeMessage(\swoole_server $server, $from_worker_id, $message)
+    {
+
+    }
+
+    /**
+     * when have new message callback
+     * @param \swoole_server $server
+     * @param \pinst\model\Connection $connection
+     * @param string $data
+     */
+    public function onMessage($server,$connection,$data){
 
     }
 }

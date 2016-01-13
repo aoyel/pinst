@@ -5,7 +5,7 @@ namespace pinst\handel;
 use pinst\utils\Console;
 use pinst\utils\Parser;
 
-class WebSocketHandel extends BaseHandel
+class WebSocketHandels extends BaseHandel
 {
     protected $max_frame_size = 2097152;
 

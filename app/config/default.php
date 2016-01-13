@@ -20,11 +20,8 @@ $config = [
             'directoryLevel' => 1,
             'keyPrefix' => '__cache'
         ],
-        'dispatch'=>[
-            'class'=>'\pinst\server\Dispatch',
-            'handelMap'=>[
-                "default"=>"\app\handel\MsgHandel",
-            ]
+        'handel'=>[
+            'class'=>'\app\handel\MsgHandel'
         ],
         'logger'=>[
             'class'=>'\pinst\log\FileLogger',

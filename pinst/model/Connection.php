@@ -90,36 +90,19 @@ class Connection
                 FileHelper::createDirectory($filename);
             }
         }
-
         $filename .= DIRECTORY_SEPARATOR.$this->getProperty("client_id").'_'.time();
-
         $fp = fopen($filename,"a+");
-
         if(!$fp){
             return false;
         }
-
         foreach($this->message as $msg){
             fwrite($fp,'['.date("Y/m/d H:i:s",$msg['time']).']'.$msg['content']);
         }
         fclose($fp);
     }
 
-    public function on($event,$callback){
-        $list = null;
-        if(!isset($this->callback[$event])){
-            $list = [];
-        }else{
-            $list = $this->callback[$event];
-        }
-        $list[] = $callback;
-        $this->callback[$event] = $list;
-    }
-
-
-
     /**
-     * send message
+     * send message to client
      * @param $message
      * @return mixed
      */

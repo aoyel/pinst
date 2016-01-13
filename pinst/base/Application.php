@@ -19,7 +19,7 @@ use pinst\exception\UnknownPropertyException;
  *
  * @property \pinst\base\Logger $logger Application logger component
  *
- * @property \pinst\server\Dispatch $dispatch Application dispatch component
+ * @property \pinst\handel\Handel $handel Application handel component
  *
  * @property \pinst\base\Db $db Application database component
  *
@@ -49,7 +49,6 @@ class Application extends Object
     protected function prepareComponent(){
         $this->components = array_merge($this->getKernelComponent(),$this->components);
         $this->errorHandel->register();
-        $this->dispatch->prepare();
     }
 
     /**
@@ -98,11 +97,8 @@ class Application extends Object
                 'directoryLevel' => 1,
                 'keyPrefix' => '__cache'
             ],
-            'dispatch'=>[
-                'class'=>'\pinst\server\Dispatch',
-                'handelMap'=>[
-                    "default"=>"\app\handel\DefaultHandel",
-                ]
+            'handel'=>[
+                'class'=>'\pinst\handel\Basehandel'
             ],
             'logger'=>[
                 'class'=>'\pinst\log\FileLogger',
@@ -181,7 +177,7 @@ class Application extends Object
 
     protected function start(){
         $server = \Pinst::createObject($this->server);
-        $server->setDispatch($this->dispatch)->run();
+        $server->setHandel($this->handel)->run();
     }
 
     /**

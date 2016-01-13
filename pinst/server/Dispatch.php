@@ -69,6 +69,11 @@ class Dispatch extends Object
     }
 
     public function onReceive($server, $client_id, $from_id, $data){
+
+        $server->send($client_id,"HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nServer: nginx\r\n\r\nhello\r\n\r\n");
+        $server->close($client_id);
+        return ;
+
         $this->toggle("onReceive",[
             $server,$client_id,$from_id,$data
         ]);
