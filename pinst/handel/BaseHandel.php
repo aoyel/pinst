@@ -124,8 +124,7 @@ class BaseHandel extends Object implements HandelInterface
     }
 
 
-    public function beforeClose($server, $client_id, $from_id){
-    }
+
 
     /**
      * remove connection object from connection list
@@ -148,6 +147,10 @@ class BaseHandel extends Object implements HandelInterface
             return $this->connections[$id];
         }
         return null;
+    }
+
+    public function beforeClose($server, $client_id, $from_id){
+        return true;
     }
 
     /**

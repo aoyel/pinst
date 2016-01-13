@@ -3,6 +3,8 @@
 namespace pinst\handel;
 
 
+use pinst\utils\Console;
+
 class WebSocketHandel extends BaseHandel
 {
 

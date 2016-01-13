@@ -1,7 +1,16 @@
 <?php
 
+
+
 define("APP_DEBUG",true);
 define("APP_PATH",__DIR__);
+
+if(php_sapi_name() !== "cli"){
+    $content = file_get_contents(APP_PATH."/assets/index.html");
+    $server_ip = getenv('SERVER_ADDR');
+    $content = str_replace("#SERVER_IP#",$server_ip,$content);
+    echo $content;
+}
 
 require "./pinst/Pinst.php";
 $autoload = APP_PATH."/vendor/autoload.php";

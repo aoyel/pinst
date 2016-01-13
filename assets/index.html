@@ -17,10 +17,11 @@
         }
         body{
             height: 100%;
-            background: url("http://console.aoyel.com/images/console-bg.jpg");
+            background: url("./images/background.png");
             left: 0px;
             z-index: 999;
             background-attachment: fixed;
+            background-size:cover;
         }
 
         .wrap-container{
@@ -31,19 +32,41 @@
             margin-left: auto;
             margin-right: auto;
         }
-        .sender-bar{
-            display: block;
+        .sender-panel{
+            display: none;
             width: 100%;
-            background: #f1f1f1;
             padding: 1em 0;;
             position: fixed;
             bottom: 0;
             left: 0;
         }
+        .login-panel{
+            display: none;
+            text-align: center;
+            padding-top: 2em;
+        }
 
-        textarea.form-control{
+        .login-panel img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 3em;
+        }
+
+
+        textarea.form-control,
+        input.form-control{
             border-radius: 0;
             box-shadow: none;
+            background: none;
+            color: white;
+            max-width: 100%;
+        }
+
+        input.form-control{
+            width: 80%;
+            max-width: 350px;
+            display: inline-block;
         }
 
         textarea.form-control:focus{
@@ -54,6 +77,21 @@
             width: 100%;
             padding: 1em 0;
             position: relative;
+        }
+
+        .msg-item a{
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .msg-item em{
+            display: block;
+            text-align: center;
+            left: 0;
+            position: relative;
+            color: white;
+            font-size: 12px;
+            font-style: normal;
         }
 
         .msg-item::before{
@@ -70,10 +108,9 @@
             display: inline-block;
             padding: 1em .8em;
             max-width: 60%;
-            background: rgba(255,255,255,.8);
-
+            color: white;
+            background: rgba(0,0,0,.6);
         }
-
         .msg-item.system{
             text-align: center;
         }
@@ -96,13 +133,28 @@
             width: 40px;
             height:40px;
             margin:0 .5em;
-            float: left;
             vertical-align: top;
             border-radius: 50%;
         }
 
-        .msg-item.right img.avatar{
+        .msg-item.right a{
             float: right;
+        }
+
+        .retry-panel{
+            display: none;
+            text-align: center;
+        }
+
+        .retry-panel .btn{
+            width: 80%;
+            color: #fff;
+            border: 1px solid #eee;
+            background: none;
+        }
+
+        .retry-panel .btn:hover{
+            background: rgba(255,255,255,.1);
         }
 
         @media (min-width: 769px) {
@@ -180,38 +232,26 @@
     <div class="container">
     <div class="chat-panel">
         <div class="wrap-container">
-            <!--
-            <div class="msg-item">
-                <a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png" alt=""></a>
-                <span>
-                    你好啊你手机hi阿斯顿绿卡打瞌睡老大是倒萨旅客的捡垃圾了打死科技拉升的拉屎家打扫了的撒娇的徕卡了肯德基撒快乐大厦
-                </span>
-            </div>
-
-            <div class="msg-item right">
-                <a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png" alt=""></a>
-                <span>
-                    你好啊
-                </span>
-            </div>
-
-            <div class="msg-item system">
-                <span>
-                    用户退出了
-                </span>
-            </div>
-            -->
-
         </div>
     </div>
-    <div class="sender-bar">
+    <section class="retry-panel">
+        <a href="javascript:;" class="btn">
+            重新链接
+        </a>
+    </section>
+    <section class="login-panel">
+        <img src="http://static.aoyel.com/images/avatar.png"><br>
+        <input placeholder="请输入您的昵称" class="form-control" type="text">
+    </section>
+
+    <section class="sender-panel">
         <div class="wrap-container">
             <textarea placeholder="请输入您要发送的消息" name="content" class="form-control"></textarea>
             <div class="clearfix">
                 <a href="javascript:;" style="display: none" class="btn btn-default btn-send pull-right">发送</a>
             </div>
         </div>
-    </div>
+    </section>
     </div>
 <script src="http://cdn.bootcss.com/jquery/2.1.0/jquery.min.js"></script>
 <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
@@ -298,29 +338,52 @@
     }
 
     $(function(){
+        var url = "ws://#SERVER_IP#:3927";
+        var isLogin = false;
         var panel = $(".chat-panel .wrap-container");
         var btnSend = $(".btn-send");
+        var senderPanel = $(".sender-panel");
+        var loginPanel = $(".login-panel");
+        var retryPanel = $(".retry-panel");
         var msgContent = $("textarea[name='content']");
         var s = new socket();
 
-        var renderMsg = function(msg,type){
-            var tpl = $('<div class="msg-item"><a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png"></a><span></span></div>');
+        var renderMsg = function(msg,type,target){
+            var tpl = $('<div class="msg-item"><a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png"><em role="name"></em></a><span></span></div>');
             if(type == "system"){
                 tpl.addClass("system");
                 tpl.find("a").remove();
             }else if(type == "self"){
                 tpl.addClass("right");
             }
+            if(target){
+                tpl.find("em[role='name']").text(target);
+            }
             tpl.find("span").html(msg);
             panel.append(tpl);
             $('html, body').animate({scrollTop: $(document).height()},400);
         }
 
-        s.init("ws://192.168.1.109:3927",false);
+        var buildMsg = function(data,action,target){
+            var param = {};
+            param['action'] = action || "msg";
+            param['target'] = target || "";
+            param['data'] = data;
+            return JSON.stringify(param);
+        }
 
+        s.init(url,false);
 
-        panel.css("padding-bottom",$(".sender-bar").height()+10);
-
+        $("input",loginPanel).on("keydown",function(event){
+            if(event.keyCode == 13){
+                var name = $(this).val();
+                if(name != ""){
+                    s.send(buildMsg(name,"login"));
+                }else{
+                    $(this).focus();
+                }
+            }
+        })
 
         msgContent.on("keydown",function(event){
             if(event.keyCode == 13){
@@ -329,9 +392,13 @@
             }
         })
 
+        retryPanel.on("click","a",function(){
+            s.init(url,false);
+        })
+
         btnSend.on("click",function(e){
             var content = msgContent.val();
-            s.send(content,function(){
+            s.send(buildMsg(content,"message"),function(){
                 renderMsg(content,"self");
                 msgContent.val("");
             });
@@ -339,22 +406,38 @@
         });
 
         s.on("message",function(data){
-            console.log(data);
-            renderMsg(data.data);
+            processMessage(data.data);
         })
+
+        var processMessage = function(data){
+            data = jQuery.parseJSON(data);
+            if(data.action == "login"){
+                if(data.data == "ok"){
+                    loginPanel.fadeOut();
+                    senderPanel.show();
+                    panel.css("padding-bottom",senderPanel.height()+10);
+                }
+            }else if(data.action == "message"){
+                renderMsg(data.data,null,data.target);
+            }else if(data.action == "notify"){
+                renderMsg(data.data,"system");
+            }
+        }
 
         s.on("open",function(data){
             if(data.type == "open"){
                 renderMsg("连接服务器成功","system");
             }
-
-//            for(i = 0; i< 1000;i++){
-//                s.send(i);
-//            }
+            panel.show();
+            retryPanel.hide();
+            loginPanel.show();
         })
 
         s.on("close",function(data){
             renderMsg("服务器断开了","system");
+            panel.hide();
+            retryPanel.show();
+            senderPanel.hide();
         })
     })
 
