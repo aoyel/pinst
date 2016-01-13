@@ -10,10 +10,22 @@ git clone https://github.com/aoyel/pinst.git
 ```
 
 ##教程
-进入app目录
-config 应用程序的配置目录
-handel 消息处理器目录
-runtime 程序运行缓存数据目录
+
+###应用程序目录结构
+
+```
+├── config
+│   └── default.php                     #默认配置文件
+├── handel
+│   ├── DefaultHandel.php               #默认处理器
+│   └── MsgHandel.php
+└── runtime
+    ├── cache                           #缓存文件目录
+    ├── logs                            #日志文件目录
+    ├── msg                             #消息记录文件目录
+    ├── server.log                      #服务日志
+    └── server.pid                      #服务进程PID
+```
 
 ###程序配置
 
@@ -40,12 +52,6 @@ $config = [
             'directoryLevel' => 1,
             'keyPrefix' => '__cache'
         ],
-        'dispatch'=>[                                  # dispatch component
-            'class'=>'\pinst\server\Dispatch',
-            'handelMap'=>[
-                "default"=>"\app\handel\DefaultHandel",
-            ]
-        ],
         'logger'=>[                                   # logger component
             'class'=>'\pinst\log\FileLogger',
         ],
@@ -65,11 +71,7 @@ return $config;
 
 ?>
 
-
-
-
 ```
-
 参考YII的组件配置模式，通过配置应用程序组件你可以轻松的实现组件重载,同时组件可以随意配置添加自己的组件，自需要继承`\pinst\base\Object`即可
 使用组件可以通过
 ```
@@ -77,7 +79,7 @@ return $config;
 ```
 来进行使用，组件都是用到时候才会进行加载
 
-##简单使用
+###简单使用
 ```
 <?php
 
@@ -85,24 +87,17 @@ namespace app\handel;
 use pinst\handel\BaseHandel;
 class DefaultHandel extends BaseHandel
 {
-    public function onMessage($server, $client_id, $from_id, $data){
-        $this->send($client_id,"HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nServer: nginx\r\n\r\nhello\r\n\r\n");
-        $this->close($client_id);
+    public function onMessage($server, $connection, $from_id, $data){
+        $connection->send("HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nServer: nginx\r\n\r\nhello\r\n\r\n");
+        $connection->close($client_id);
     }
 }
 
 
 
-```
-####高级使用
-绑定多个Handel
-```
-\Pinst::attachHandel($name,$handel_class);
-#取消Handel的绑定
-\Pinst::detachHandel($name);
-```
-####composer安装其他PHP库
-pinst默认启动会引入vendor/aotoload.php，需要其他依赖库只需要 composer require 'some lib' 即可
+
+###composer安装其他PHP库
+pinst默认启动会引入`vendor/aotoload.php`，需要其他依赖库只需要 `composer require 'some lib'` 即可
 
 
 ###压力测试
