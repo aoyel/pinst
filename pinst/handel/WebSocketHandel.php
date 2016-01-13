@@ -62,13 +62,7 @@ class WebSocketHandel extends BaseHandel
                 $connection->close();
                 return false;
         }
-        if($length > $this->max_frame_size){
-            if(APP_DEBUG){
-                Console::println("message to long , receive data length:{$length}");
-            }
-            \Pinst::error("get message to long");
-            return false;
-        }
+
         if($length == 126) {
             $masks = substr($buffer, 4, 4);
             $data = substr($buffer, 8);

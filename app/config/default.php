@@ -21,7 +21,7 @@ $config = [
             'keyPrefix' => '__cache'
         ],
         'handel'=>[
-            'class'=>'\app\handel\DefaultHandel'
+            'class'=>'\app\handel\MsgHandel'
         ],
         'logger'=>[
             'class'=>'\pinst\log\FileLogger',
