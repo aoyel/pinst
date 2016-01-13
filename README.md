@@ -1,5 +1,5 @@
 #介绍
-Pinst是一个基于swoole开发的PHP socket框架，支持websocket，高扩张性！
+Pinst是一个基于swoole开发的PHP socket框架，支持websocket，具有很强大的扩展性！
 
 #使用
 
@@ -103,6 +103,32 @@ class DefaultHandel extends BaseHandel
 ```
 ####composer安装其他PHP库
 pinst默认启动会引入vendor/aotoload.php，需要其他依赖库只需要 composer require 'some lib' 即可
+
+
+###压力测试
+
+```
+ab -n 1000 -c 100 http://127.0.0.1:8080/
+
+Server Software:        nginx
+Server Hostname:        127.0.0.1
+Server Port:            8080
+
+Document Path:          /
+Document Length:        9 bytes
+
+Concurrency Level:      1000
+Time taken for tests:   0.268 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      67000 bytes
+HTML transferred:       9000 bytes
+Requests per second:    13733.61 [#/sec] (mean)
+Time per request:       58.837 [ms] (mean)
+Time per request:       0.268 [ms] (mean, across all concurrent requests)
+Transfer rate:          244.29 [Kbytes/sec] received
+
+```
 
 
 

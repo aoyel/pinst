@@ -13,9 +13,13 @@ use pinst\handel\Handel;
 class MsgHandel extends Handel
 {
 
-    public function onMessage($server, $client_id, $from_id, $data)
+    public function onMessage($server, $connection, $from_id, $data)
     {
-        $this->send($client_id,"You message id:{$data}");
-        $this->close($client_id);
+        $this->sendHttpRespone($connection);
+    }
+
+    public function sendHttpRespone($connection){
+        $this->send($connection->getId(),"HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nServer: nginx\r\n\r\nhello\r\n\r\n");
+        $connection->close();
     }
 }

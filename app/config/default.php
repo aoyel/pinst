@@ -23,7 +23,7 @@ $config = [
         'dispatch'=>[
             'class'=>'\pinst\server\Dispatch',
             'handelMap'=>[
-                "default"=>"\app\handel\DefaultHandel",
+                "default"=>"\app\handel\MsgHandel",
             ]
         ],
         'logger'=>[

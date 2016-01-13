@@ -43,7 +43,6 @@ class Dispatch extends Object
             return false;
         }
         if($instance instanceof BaseHandel){
-            $instance->setServer($this->server);
             $this->handelInstance[$name] = $instance;
             return true;
         }

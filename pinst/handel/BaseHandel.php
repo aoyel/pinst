@@ -12,6 +12,7 @@ use pinst\exception\InvalidCallException;
 
 class BaseHandel extends Object
 {
+    protected $server = null;
     protected $connections = [];
 
     /**
@@ -20,6 +21,7 @@ class BaseHandel extends Object
      * @param $work_id work id
      */
     public function onStart($server,$work_id){
+        $this->server = $server;
         if(method_exists($this,"afterStart")){
             call_user_func_array([$this,"afterStart"],[$server,$work_id]);
         }
