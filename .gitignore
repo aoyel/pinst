@@ -1,0 +1,17 @@
+.idea/*
+*.css.map
+*.bin
+*.log
+*.pid
+*.tmp
+*.swp
+.project
+.buildpath
+Swoole.php
+/vendor/
+.settings/*
+*/runtime/msg/*
+*/runtime/cache/*
+*/runtime/log/*
+*/.sass-cache/*
+test/*

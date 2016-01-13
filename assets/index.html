@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pinst 在线聊天</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html{
+            height: 100%;
+        }
+        body{
+            height: 100%;
+            background: url("http://console.aoyel.com/images/console-bg.jpg");
+            left: 0px;
+            z-index: 999;
+            background-attachment: fixed;
+        }
+
+        .wrap-container{
+            display: block;
+            position: relative;
+            width: 96%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .sender-bar{
+            display: block;
+            width: 100%;
+            background: #f1f1f1;
+            padding: 1em 0;;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+        }
+
+        textarea.form-control{
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        textarea.form-control:focus{
+            box-shadow: none;
+        }
+
+        .msg-item{
+            width: 100%;
+            padding: 1em 0;
+            position: relative;
+        }
+
+        .msg-item::before{
+            display: block;
+            clear: both;
+        }
+
+        .msg-item::after{
+            display: block;
+            clear: both;
+        }
+
+        .msg-item span{
+            display: inline-block;
+            padding: 1em .8em;
+            max-width: 60%;
+            background: rgba(255,255,255,.8);
+
+        }
+
+        .msg-item.system{
+            text-align: center;
+        }
+
+        .msg-item.system span{
+            display: inline;
+            padding: .3em .6em;
+            border-radius: 3px;
+            font-size: 12px;
+            -webkit-box-shadow: 0 0 3px rgba(0,0,0,.06);
+            -moz-box-shadow: 0 0 3px rgba(0,0,0,.06);
+            box-shadow: 0 0 3px rgba(0,0,0,.06);
+        }
+
+        .msg-item.right{
+           text-align: right;
+        }
+
+        .msg-item img.avatar{
+            width: 40px;
+            height:40px;
+            margin:0 .5em;
+            float: left;
+            vertical-align: top;
+            border-radius: 50%;
+        }
+
+        .msg-item.right img.avatar{
+            float: right;
+        }
+
+        @media (min-width: 769px) {
+            ::-webkit-scrollbar {
+                width:9px;
+                height:9px;
+                box-sizing:border-box;
+                background:#eee
+            }
+            ::-webkit-scrollbar-button {
+                width:9px;
+                height:12px;
+                background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAAUCAYAAADRA14pAAADr0lEQVRYR71Yy04iQRQtE10IRiSBOLbOUvZmfkIlLHXjI+jCDzAm8w8TJKxZyENdqEui8BPuDVtsHCNGQcFEWUzdSt/KtbqqqZ44U0kn1V2n69xz63W6x5h9iXFoNADe521dftnibJlt+7PCjdmycpzz9vbmmvCTk5PzvK0NuNvbWyNuYWEBcbbUX8obSvBgMDAKiUQiUrDLi0nNPC9eYqwFfyWvTvAPHsm1JhqHEl9dXbHV1VUJo4Lv7u6k4JOTE7a5uSlxc3Nz/0ww5VXjR15VMIjFoop2+v2+EAJisaDoaDQqR/j+/l7gjo+PJW5ra0vUZ2dnqWDko1zqM+fi4kL0RxOMMaytrUneXC4ncMhFYzg4OBA4KpiK1Yl2Xl9fXSqWip6ampLEDw8PbrVa9U2S7e1tlkwmdYIBC6J1CXfOz8/ljAHRNIbFxcXs0tJShb/rHB4eShxw0RgymczPVCr1CwWrRCOJeQesVqtJUevr61JwPp+XxHt7e6xYLErc/v6+OqVHJvrl5cWt1+u+BEIMNzc3UvDj46NbqYD2zwViaLfbWsGBU+vs7EwIASIow+GQYSA8e5K4UCgIHBBBeX9/Z+VyWdT5CAliJabApdTr9UR/VDTGQPeO5+dngUMuGgPiQu3S3W7XHR8fl2IxaHjWbDalYAhwYmJCNH98fEht8KzVaukEA8a4WQIvdgKiacJjsZicWZgYwJZKJZlwiGF6etq3hpWk+24dzKAOODMzI4lhrZs6I2t9FB+2+3ghcZjIIF4YCJiFUJA31AjbCrY8N/9aMH2RCrbhDSP4OydKBETZ4W09fn3jV8SAG/Dnv/kFFtS22PC2eGdWOJNg3fnos3iXl5ci6HQ6zTxryVRbeXp6KjAbGxvMYCt1XDQZgpdy0UbV0lI+ikNuk9NCLN21fU4LQXA2ersgbP+fXBZiwG05jqNzWUE7NLwueHVmBxrpLg3c4OwoJ9aR+6udFgvhsugA/DeHZ3JaWi+tOi1q9bxdkHU6nU8uCxwPlkQiEeSjTaKFw8M+1JGmDg+4EUddFsSA3KFGWGcAVlZWBId3zrGnpyff4Z/NZgUmHo+bBIc2Hgqv+Cy14Q61hlUDgNkEcs8AMPXwR8zOzo48/Olc5vWRaxh4qctCsdCPajzAcFBOrI8yHtpdWj2HG42G6G95eZl55yHDLyokOjo6EtXd3V1Gvqh061e3jAAnjAfloi/Tcxi4KR/FIXeYc9jmFwpw2PwGUgY58NaG1/rX0h9d1DUzJEP0JgAAAABJRU5ErkJggg==) no-repeat
+            }
+            ::-webkit-scrollbar-button:vertical:start {
+                background-position:0 0
+            }
+            ::-webkit-scrollbar-button:vertical:start:hover {
+                background-position:-10px 0
+            }
+            ::-webkit-scrollbar-button:vertical:start:active {
+                background-position:-20px 0
+            }
+            ::-webkit-scrollbar-button:vertical:end {
+                background-position:-30px 0
+            }
+            ::-webkit-scrollbar-button:vertical:end:hover {
+                background-position:-40px 0
+            }
+            ::-webkit-scrollbar-button:vertical:end:active {
+                background-position:-50px 0
+            }
+            ::-webkit-scrollbar-button:horizontal:start {
+                background-position:0 -11px
+            }
+            ::-webkit-scrollbar-button:horizontal:start:hover {
+                background-position:-10px -11px
+            }
+            ::-webkit-scrollbar-button:horizontal:start:active {
+                background-position:-19px -11px
+            }
+            ::-webkit-scrollbar-button:horizontal:end {
+                background-position:-30px -11px
+            }
+            ::-webkit-scrollbar-button:horizontal:end:hover {
+                background-position:-40px -11px
+            }
+            ::-webkit-scrollbar-button:horizontal:end:active {
+                background-position:-50px -11px
+            }
+            ::-webkit-scrollbar-track-piece {
+                background-color:rgba(0,0,0,.15);
+                -webkit-border-radius:5px
+            }
+            ::-webkit-scrollbar-thumb {
+                background-color:#E7E7E7;
+                border:1px solid rgba(0,0,0,.21);
+                -webkit-border-radius:5px
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background-color:#F6F6F6;
+                border:1px solid rgba(0,0,0,.21)
+            }
+            ::-webkit-scrollbar-thumb:active {
+                background:-webkit-gradient(linear,left top,left bottom,from(#E4E4E4),to(#F4F4F4))
+            }
+            ::-webkit-scrollbar-corner {
+                background-color:#f1f1f1;
+                -webkit-border-radius:1px
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <div class="chat-panel">
+        <div class="wrap-container">
+            <!--
+            <div class="msg-item">
+                <a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png" alt=""></a>
+                <span>
+                    你好啊你手机hi阿斯顿绿卡打瞌睡老大是倒萨旅客的捡垃圾了打死科技拉升的拉屎家打扫了的撒娇的徕卡了肯德基撒快乐大厦
+                </span>
+            </div>
+
+            <div class="msg-item right">
+                <a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png" alt=""></a>
+                <span>
+                    你好啊
+                </span>
+            </div>
+
+            <div class="msg-item system">
+                <span>
+                    用户退出了
+                </span>
+            </div>
+            -->
+
+        </div>
+    </div>
+    <div class="sender-bar">
+        <div class="wrap-container">
+            <textarea placeholder="请输入您要发送的消息" name="content" class="form-control"></textarea>
+            <div class="clearfix">
+                <a href="javascript:;" style="display: none" class="btn btn-default btn-send pull-right">发送</a>
+            </div>
+        </div>
+    </div>
+    </div>
+<script src="http://cdn.bootcss.com/jquery/2.1.0/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script>
+    function socket(){
+        this.init = function(url,_debug){
+            this.isopen = false;
+            this.debug = _debug || true;
+            this.ws = new WebSocket(url);
+            this.bindEvent();
+            this.eventMap = [];
+            return this;
+        }
+
+        this.isOpen = function(){
+            var _this = this;
+            return _this.isopen;
+        }
+
+        this.send = function(data,callback){
+            var _this = this;
+            if(!_this.isopen){
+                _this.log("socket is closed,can't send message!");
+                return false;
+            }
+            _this.ws.send(data);
+            callback && callback();
+        }
+
+        this.log = function(msg){
+            if(this.debug){
+                console.log(msg);
+            }
+        }
+
+        this.on = function(event,callback){
+            var b = null;
+            if(this.eventMap.hasOwnProperty(event)){
+                b = this.eventMap[event];
+            }else{
+                b = new Array();
+            }
+            b.push(callback);
+            this.eventMap[event] = b;
+        }
+
+        this.toggle = function(event,param){
+            var cs = null;
+            if(this.eventMap.hasOwnProperty(event)){
+                cs = this.eventMap[event];
+            }
+            if(!cs){
+                return false;
+            }
+            for(c in cs){
+                cs[c] && cs[c](param);
+            }
+            return true;
+        }
+
+        this.bindEvent = function(){
+            var _this = this;
+            _this.ws.onopen = function(event){
+                _this.log(event);
+                if(event.type == "open"){
+                    _this.isopen = true;
+                }
+                _this.toggle("open",event);
+            }
+            _this.ws.onerror = function(event){
+                _this.log(event);
+                _this.toggle("error",event);
+            }
+            _this.ws.onmessage = function(event){
+                _this.log(event);
+                _this.toggle("message",event);
+            }
+            _this.ws.onclose = function(event){
+                _this.log(event);
+                _this.isopen = false;
+                _this.toggle("close",event);
+            }
+        }
+    }
+
+    $(function(){
+        var panel = $(".chat-panel .wrap-container");
+        var btnSend = $(".btn-send");
+        var msgContent = $("textarea[name='content']");
+        var s = new socket();
+
+        var renderMsg = function(msg,type){
+            var tpl = $('<div class="msg-item"><a href="javascript:;"><img class="avatar" src="http://static.aoyel.com/images/avatar.png"></a><span></span></div>');
+            if(type == "system"){
+                tpl.addClass("system");
+                tpl.find("a").remove();
+            }else if(type == "self"){
+                tpl.addClass("right");
+            }
+            tpl.find("span").html(msg);
+            panel.append(tpl);
+            $('html, body').animate({scrollTop: $(document).height()},400);
+        }
+
+        s.init("ws://192.168.1.109:3927",false);
+
+
+        panel.css("padding-bottom",$(".sender-bar").height()+10);
+
+
+        msgContent.on("keydown",function(event){
+            if(event.keyCode == 13){
+                btnSend.click();
+                event.preventDefault();
+            }
+        })
+
+        btnSend.on("click",function(e){
+            var content = msgContent.val();
+            s.send(content,function(){
+                renderMsg(content,"self");
+                msgContent.val("");
+            });
+
+        });
+
+        s.on("message",function(data){
+            console.log(data);
+            renderMsg(data.data);
+        })
+
+        s.on("open",function(data){
+            if(data.type == "open"){
+                renderMsg("连接服务器成功","system");
+            }
+        })
+
+        s.on("close",function(data){
+            renderMsg("服务器断开了","system");
+        })
+    })
+
+</script>
+</body>
+</html>
