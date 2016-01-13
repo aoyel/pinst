@@ -5,17 +5,21 @@ namespace pinst\handel;
 
 use pinst\base\Object;
 use pinst\model\Connection;
+use pinst\utils\Console;
 
 class BaseHandel extends Object implements HandelInterface
 {
     protected $connections = [];
 
     /**
-     * when work start calllback
+     * when worker process start calllback
      * @param \swoole_server $server
      * @param int $work_id
      */
     public function onStart(\swoole_server $server, $work_id){
+        if(APP_DEBUG){
+            Console::println("worker process[{$work_id}] started successfully !");
+        }
     }
 
     /**
@@ -58,6 +62,9 @@ class BaseHandel extends Object implements HandelInterface
             return ;
         }
         $this->prepareConnection($server,$client_id);
+        if(APP_DEBUG){
+            Console::println("have new client[$client_id] connection !");
+        }
         $this->afterConnect($server, $client_id, $from_id);
     }
 
@@ -85,7 +92,7 @@ class BaseHandel extends Object implements HandelInterface
     }
 
     /**
-     * receive callback
+     * receive message callback
      * @param \swoole_server $server
      * @param client $client_id
      * @param from $from_id
@@ -96,6 +103,9 @@ class BaseHandel extends Object implements HandelInterface
         $connection = $this->getConnection($client_id);
         if(!$this->beforeReceive($server, $connection, $from_id, $data)){
             return;
+        }
+        if(APP_DEBUG){
+            Console::println("receive client[$client_id] message,message data is:\n<<<\n{$data}\n>>>");
         }
         $this->onMessage($server,$connection,$data);
         $this->afterReceive($server, $connection, $from_id, $data);
@@ -150,6 +160,9 @@ class BaseHandel extends Object implements HandelInterface
     {
         if(!$this->beforeClose($server, $client_id, $from_id)){
             return ;
+        }
+        if(APP_DEBUG){
+            Console::println("client[$client_id] close connection!");
         }
         $this->afterClose($server, $client_id, $from_id);
     }

@@ -9,5 +9,4 @@ if(file_exists($autoload)){
     require $autoload;
 }
 $config = require APP_PATH."/app/config/default.php";
-
 (new \pinst\base\Application($config))->run();

@@ -1,21 +1,15 @@
 <?php
 
 namespace app\handel;
-use pinst\handel\Handel;
-use pinst\utils\Console;
+
+use pinst\handel\WebSocketHandel;
 
 
-class MsgHandel extends Handel
+
+class MsgHandel extends WebSocketHandel
 {
     public function onMessage($server, $connection, $data)
     {
-
-        $this->sendHttpRespone($connection);
-
-    }
-
-    public function sendHttpRespone($connection){
-        $connection->send("HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nServer: nginx\r\n\r\nhello\r\n\r\n");
-        $connection->close();
+        $connection->send("You message is:{$data}");
     }
 }
