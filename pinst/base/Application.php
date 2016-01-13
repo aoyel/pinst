@@ -5,8 +5,6 @@ use pinst\utils\Console;
 use pinst\exception\InvalidCallException;
 use pinst\exception\UnknownPropertyException;
 
-
-
 /**
  *
  * @package pinst\base
@@ -22,6 +20,8 @@ use pinst\exception\UnknownPropertyException;
  * @property \pinst\handel\Handel $handel Application handel component
  *
  * @property \pinst\base\Db $db Application database component
+ *
+ * @property \pinst\server\Server $server Application server component
  *
  * @property \pinst\base\ErrorHandel $errorHandel Application default error handel
  *
@@ -136,7 +136,7 @@ class Application extends Object
     public function run(){
         global $argv;
         $server_pid = null;
-        $pid_file = $this->server['pid_file'];
+        $pid_file = $this->server->pid_file;
         if(file_exists($pid_file)){
             $server_pid = intval(@file_get_contents($pid_file));
         }
@@ -176,8 +176,7 @@ class Application extends Object
     }
 
     protected function start(){
-        $server = \Pinst::createObject($this->server);
-        $server->setHandel($this->handel)->run();
+        $this->server->setHandel($this->handel)->run();
     }
 
     /**
@@ -196,26 +195,6 @@ class Application extends Object
     public function registerShutdownFunction($callback){
         if($callback instanceof \Closure){
             $this->callback['shutdown'][] = $callback;
-        }
-    }
-
-    /**
-     * register work start callback
-     * @param $callback
-     */
-    public function registerStartFunction($callback){
-        if($callback instanceof \Closure){
-            $this->callback['start'][] = $callback;
-        }
-    }
-
-    /**
-     * register work stop callback
-     * @param $callback
-     */
-    public function registerStopFunction($callback){
-        if($callback instanceof \Closure){
-            $this->callback['stop'][] = $callback;
         }
     }
 

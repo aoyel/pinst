@@ -3,7 +3,7 @@
 namespace pinst\handel;
 
 
-class WebSockethandel extends BaseHandel
+class WebSocketHandel extends BaseHandel
 {
 
     protected $max_frame_size = 2097152;
@@ -86,6 +86,21 @@ class WebSockethandel extends BaseHandel
             $text .= $data[$i] ^ $masks[$i%4];
         }
         return $text;
+    }
+
+    /**
+     *
+     * @param $client_id client id
+     * @param $content message content
+     * @return bool must be return true
+     */
+    public function beforeSend($client_id,&$content)
+    {
+        $connection = $this->getConnection($client_id);
+        if($connection->getProperty("isHandShake")){
+            $content = $this->encode($content);
+        }
+        return true;
     }
 
     /**

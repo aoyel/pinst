@@ -54,8 +54,6 @@ class Server extends \pinst\base\Object
     }
 
     public function onMasterStart($server){
-        //$server->master_pid
-        //save pid
         file_put_contents($this->pid_file,$server->master_pid);
         if(APP_DEBUG){
             Console::println("Service[{$server->master_pid}] startup success !");
@@ -98,12 +96,47 @@ class Server extends \pinst\base\Object
         return $this->server->shutdown();
     }
 
+    /**
+     * @param $client_id
+     * @return bool
+     */
     public function close($client_id){
         return $this->server->close($client_id);
     }
 
+    /**
+     * send message to client
+     * @param $client_id
+     * @param $content
+     * @return bool
+     */
     public function send($client_id,$content){
+        if(is_callable([$this->handel,"beforeSend"])){
+            if(!$this->handel->beforeSend($client_id,$content)){
+                return;
+            }
+        }
         return $this->server->send($client_id,$content);
     }
+
+    /**
+     * send to all
+     * @param $content send content
+     */
+    public function sendToAll($content){
+        $connections = $this->server->connections;
+        foreach($connections as $fd){
+            $this->send($fd,$content);
+        }
+    }
+
+    public function broadcast($content,$client_id){
+        $connections = $this->server->connections;
+        foreach($connections as $fd){
+            if($fd != $client_id)
+                $this->send($fd,$content);
+        }
+    }
+
 
 }

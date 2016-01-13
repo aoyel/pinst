@@ -37,7 +37,6 @@ class BaseHandel extends Object implements HandelInterface
     protected function prepareConnection($server,$id){
         if(!isset($this->connections[$id])){
             $connection = new Connection();
-            $connection->setServer($server);
             $clientInfo = $server->connection_info($id);
             foreach($clientInfo as $k=>$v){
                 $connection->setProperty($k,$v);

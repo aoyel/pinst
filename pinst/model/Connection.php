@@ -9,10 +9,8 @@ class Connection
      * @var client id
      */
     protected $id;
-    protected $server;
     protected $property = [];
     protected $message = [];
-    protected $callback = [];
 
     /**
      * @return mixed
@@ -28,14 +26,6 @@ class Connection
     public function setId($id)
     {
         $this->id = $id;
-    }
-
-    /**
-     * set server
-     * @param $server
-     */
-    public function setServer($server){
-        $this->server = $server;
     }
 
     /**
@@ -107,7 +97,7 @@ class Connection
      * @return mixed
      */
     public function send($message){
-        return $this->server->send($this->getId(),$message);
+        return \Pinst::$app->server->send($this->getId(),$message);
     }
 
     /**
@@ -115,6 +105,6 @@ class Connection
      * @return mixed
      */
     public function close(){
-        return $this->server->close($this->getId());
+        return \Pinst::$app->server->close($this->getId());
     }
 }
