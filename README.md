@@ -4,9 +4,10 @@ Pinst是一个基于swoole开发的PHP socket框架，支持websocket，高扩�
 #使用
 
 ##安装
->git clone https://github.com/aoyel/pinst.git
-
->./run
+```
+git clone https://github.com/aoyel/pinst.git
+./run
+```
 
 ##教程
 进入app目录
@@ -64,13 +65,17 @@ return $config;
 
 ?>
 
-参考YII的组件配置模式，通过配置应用程序组件你可以轻松的实现组件重载,同时组件可以随意配置添加自己的组件，自需要继承`\pinst\base\Object`即可
-使用组件可以通过
->\Pinst::$app->component;
-来进行使用，组件都是用到时候才会进行加载
+
 
 
 ```
+
+参考YII的组件配置模式，通过配置应用程序组件你可以轻松的实现组件重载,同时组件可以随意配置添加自己的组件，自需要继承`\pinst\base\Object`即可
+使用组件可以通过
+```
+\Pinst::$app->component;
+```
+来进行使用，组件都是用到时候才会进行加载
 
 ##简单使用
 ```
@@ -91,10 +96,11 @@ class DefaultHandel extends BaseHandel
 ```
 ####高级使用
 绑定多个Handel
->\Pinst::attachHandel($name,$handel_class);
-取消Handel的绑定
->\Pinst::detachHandel($name);
-
+```
+\Pinst::attachHandel($name,$handel_class);
+#取消Handel的绑定
+\Pinst::detachHandel($name);
+```
 ####composer安装其他PHP库
 pinst默认启动会引入vendor/aotoload.php，需要其他依赖库只需要 composer require 'some lib' 即可
 
