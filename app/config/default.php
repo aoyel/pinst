@@ -11,7 +11,7 @@ $config = [
             'pid_file'=>APP_PATH."/app/runtime/server.pid",
             'config' => [
                 'worker_num' => 1,
-                'daemonize'=>true,
+                'daemonize'=>false,
                 'log_file' => APP_PATH . "/app/runtime/server.log"
             ]
         ],

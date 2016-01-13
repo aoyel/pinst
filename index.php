@@ -8,7 +8,7 @@ define("APP_PATH",__DIR__);
 if(php_sapi_name() !== "cli"){
     $content = file_get_contents(APP_PATH."/assets/index.html");
     $server_ip = getenv('SERVER_ADDR');
-    $content = str_replace("#SERVER_IP#",$server_ip,$content);
+    $content = str_replace("#SERVER_IP#","127.0.0.1",$content);
     echo $content;
 }
 
