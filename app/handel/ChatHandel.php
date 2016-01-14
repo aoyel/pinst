@@ -1,21 +1,11 @@
 <?php
-/**
- * User: smile
- * Date: 16-1-13
- * Time: 下午7:18
- * Summary:
- */
 
 namespace app\handel;
-
-
 use pinst\handel\WebSocketHandel;
 
 class ChatHandel extends WebSocketHandel
 {
-    public function afterConnect(\swoole_server $server, $client_id, $from_id)
-    {
-
+    public function afterConnect(\swoole_server $server, $client_id, $from_id){
     }
 
     public function onMessage($server, $connection, $data){
@@ -56,7 +46,6 @@ class ChatHandel extends WebSocketHandel
 
     public function afterClose($server, $client_id, $from_id)
     {
-
         $connection = $this->getConnection($client_id);
         $name = $connection->getProperty("name");
         \Pinst::$app->server->broadcast($this->buildMessage("{$name}退出了聊天室","notify"),$client_id);

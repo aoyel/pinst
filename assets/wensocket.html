@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+
+
+<script src="http://cdn.bootcss.com/jquery/2.1.0/jquery.min.js"></script>
+<script src="./web-socket-js/web_socket.js"></script>
+<script src="web-socket-js/swfobject.js"></script>
+
+<script>
+    WEB_SOCKET_SWF_LOCATION = "./WebSocketMain.swf";
+    // Write your code in the same way as for native WebSocket:
+    var ws = new WebSocket("ws://127.0.0.1:3927");
+    ws.onopen = function() {
+        ws.send("Hello");  // Sends a message.
+    };
+    ws.onmessage = function(e) {
+        // Receives a message.
+        alert(e.data);
+    };
+    ws.onclose = function() {
+        alert("closed");
+    };
+</script>
+
+</body>
+</html>

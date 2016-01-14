@@ -1,61 +1,10 @@
 <?php
 
-namespace pinst\model;
+namespace pinst\connection;
 
-
-class Connection
+class Connection extends BaseConnection
 {
-    /**
-     * @var client id
-     */
-    protected $id;
-    protected $property = [];
-    protected $message = [];
-
-    /**
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @param $name
-     * @param $value
-     */
-    public function setProperty($name,$value){
-        $this->property[$name] = $value;
-    }
-
-    /**
-     * @param $name
-     * @param null $defaultValue
-     * @return null
-     */
-    public function getProperty($name,$defaultValue = null){
-        if($this->hasProperty($name))
-            return $this->property[$name];
-        return $defaultValue;
-    }
-
-    /**
-     * @param $name
-     * @return bool
-     */
-    public function hasProperty($name)
-    {
-        return isset($this->property[$name]);
-    }
-
+   protected $message = [];
     /**
      * push chat log message
      * @param $content
@@ -98,13 +47,5 @@ class Connection
      */
     public function send($message){
         return \Pinst::$app->server->send($this->getId(),$message);
-    }
-
-    /**
-     * close client
-     * @return mixed
-     */
-    public function close(){
-        return \Pinst::$app->server->close($this->getId());
     }
 }

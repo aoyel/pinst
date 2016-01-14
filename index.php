@@ -1,27 +1,3 @@
-<?php
-
-
-
-//define("APP_DEBUG",true);
-//define("APP_PATH",__DIR__);
-//
-//if(php_sapi_name() !== "cli"){
-//    $content = file_get_contents(APP_PATH."/assets/index.html");
-//    $server_ip = getenv('SERVER_ADDR');
-//    $content = str_replace("#SERVER_IP#","127.0.0.1",$content);
-//    echo $content;
-//}
-//
-//require "./pinst/Pinst.php";
-//$autoload = APP_PATH."/vendor/autoload.php";
-//if(file_exists($autoload)){
-//    require $autoload;
-//}
-//$config = require APP_PATH."/app/config/default.php";
-//(new \pinst\base\Application($config))->run();
-
-?>
-
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
@@ -562,6 +538,8 @@ display: none;
     </section>
     </div>
 <script src="http://cdn.bootcss.com/jquery/2.1.0/jquery.min.js"></script>
+<script src="http://192.168.1.109:8080/target/target-script-min.js#anonymous"></script>
+
 <script>
     function socket(){
         this.init = function(url,_debug){
@@ -622,6 +600,7 @@ display: none;
         this.bindEvent = function(){
             var _this = this;
             _this.ws.onopen = function(event){
+
                 _this.log(event);
                 if(event.type == "open"){
                     _this.isopen = true;
@@ -643,9 +622,9 @@ display: none;
             }
         }
     }
-
     $(function(){
-        var url = "ws://<?php echo getenv('SERVER_ADDR') ?>:7560";
+
+        var url = "ws://192.168.1.109:3927";
         var isLogin = false;
         var panel = $(".chat-panel .wrap-container");
         var btnSend = $(".btn-send");
@@ -653,6 +632,7 @@ display: none;
         var loginPanel = $(".login-panel");
         var retryPanel = $(".retry-panel");
         var msgContent = $("textarea[name='content']");
+
         var s = new socket();
 
         var renderMsg = function(msg,type,target){
@@ -679,7 +659,12 @@ display: none;
             return JSON.stringify(param);
         }
 
-        s.init(url,false);
+        try {
+            s.init(url,true);
+        }catch (e){
+            console.log(e);
+        }
+
 
         $("input",loginPanel).on("keydown",function(event){
             if(event.keyCode == 13){

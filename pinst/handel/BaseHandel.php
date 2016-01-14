@@ -2,10 +2,9 @@
 
 namespace pinst\handel;
 
-
 use pinst\base\Object;
-use pinst\model\Connection;
 use pinst\utils\Console;
+use pinst\connection\Connection;
 
 class BaseHandel extends Object implements HandelInterface
 {
@@ -82,7 +81,7 @@ class BaseHandel extends Object implements HandelInterface
     /**
      * before message process callback
      * @param \swoole_server $server
-     * @param \pinst\model\Connection $connection
+     * @param \pinst\connection\Connection $connection
      * @param $from_id
      * @param $data
      * @return bool
@@ -114,7 +113,7 @@ class BaseHandel extends Object implements HandelInterface
     /**
      * when message was processed callbck
      * @param \swoole_server $server
-     * @param \pinst\model\Connection $connection
+     * @param \pinst\connection\Connection $connection
      * @param $from_id
      * @param $data
      * @return bool
@@ -122,9 +121,6 @@ class BaseHandel extends Object implements HandelInterface
     public function afterReceive(\swoole_server $server, $connection, $from_id, $data){
         return true;
     }
-
-
-
 
     /**
      * remove connection object from connection list
@@ -140,7 +136,7 @@ class BaseHandel extends Object implements HandelInterface
     /**
      * get connection object
      * @param $id connection id
-     * @return null|\pinst\model\Connection if has connection return connection otherwise return null
+     * @return null|\pinst\connection\Connection if has connection return connection otherwise return null
      */
     public function getConnection($id){
         if(isset($this->connections[$id])){
@@ -180,34 +176,29 @@ class BaseHandel extends Object implements HandelInterface
     }
 
 
-    public function onStop(\swoole_server $server, $work_id)
-    {
+    public function onStop(\swoole_server $server, $work_id){
 
     }
 
-    public function onTimer(\swoole_server $server, $interval)
-    {
+    public function onTimer(\swoole_server $server, $interval){
     }
 
-    public function onTask(\swoole_server $server, $task_id, $from_id, $data)
-    {
-
-    }
-
-    public function onFinish(\swoole_server $server, $task_id, $data)
-    {
+    public function onTask(\swoole_server $server, $task_id, $from_id, $data){
 
     }
 
-    public function onPipeMessage(\swoole_server $server, $from_worker_id, $message)
-    {
+    public function onFinish(\swoole_server $server, $task_id, $data){
+
+    }
+
+    public function onPipeMessage(\swoole_server $server, $from_worker_id, $message){
 
     }
 
     /**
      * when have new message callback
      * @param \swoole_server $server
-     * @param \pinst\model\Connection $connection
+     * @param \pinst\connection\Connection $connection
      * @param string $data
      */
     public function onMessage($server,$connection,$data){

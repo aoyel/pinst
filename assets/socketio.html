@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pinst Socket</title>
+</head>
+<body>
+
+
+<script src="http://cdn.bootcss.com/jquery/2.1.0/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/socket.io/1.4.4/socket.io.min.js"></script>
+
+<script>
+    var socket = io('ws://127.0.0.1:3927/');
+    socket.on('connect', function(){
+        socket.emit('login', uid);
+    });
+</script>
+</body>
+</html>

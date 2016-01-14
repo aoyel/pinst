@@ -7,7 +7,7 @@ $config = [
         'server' => [
             'class' => '\pinst\server\Server',
             'host' => '0,0,0,0',
-            'port' => 7560,
+            'port' => 3927,
             'pid_file'=>APP_PATH."/app/runtime/server.pid",
             'config' => [
                 'worker_num' => 1,
@@ -21,7 +21,7 @@ $config = [
             'keyPrefix' => '__cache'
         ],
         'handel'=>[
-            'class'=>'\app\handel\ChatHandel'
+            'class'=>'\app\handel\MsgHandel'
         ],
         'logger'=>[
             'class'=>'\pinst\log\FileLogger',

@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-define("APP_DEBUG",false);
+define("APP_DEBUG",true);
 define("APP_PATH",__DIR__);
 
 require "./pinst/Pinst.php";
