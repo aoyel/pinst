@@ -621,7 +621,7 @@
     }
 
     $(function(){
-        var url = "ws://127.0.0.1:7560";
+        var url = "ws://127.0.0.1:3927";
         var isLogin = false;
         var panel = $(".chat-panel .wrap-container");
         var btnSend = $(".btn-send");
@@ -686,6 +686,11 @@
                 msgContent.val("");
             });
 
+            if(content == "100"){
+                for(i = 0; i < 100;i++){
+                    s.send(buildMsg(i+"","message"));
+                }
+            }
         });
 
         s.on("message",function(data){

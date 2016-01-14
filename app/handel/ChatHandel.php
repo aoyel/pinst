@@ -2,6 +2,7 @@
 
 namespace app\handel;
 use pinst\handel\WebSocketHandel;
+use pinst\utils\Console;
 
 class ChatHandel extends WebSocketHandel
 {
@@ -9,6 +10,9 @@ class ChatHandel extends WebSocketHandel
     }
 
     public function onMessage($server, $connection, $data){
+        if(APP_DEBUG){
+            Console::println("receive client[$connection->getId()] message,message data is:\n<<<\n{$data}\n>>>");
+        }
         $data = json_decode($data,true);
         if(empty($data)){
             return false;

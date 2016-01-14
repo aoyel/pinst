@@ -680,7 +680,7 @@ class Console
         return fwrite(\STDOUT, $string."\n");
     }
 
-    public function warning($string){
+    public static function warning($string){
         self::println(self::ansiFormat($string,[
             Console::BG_RED
         ]));

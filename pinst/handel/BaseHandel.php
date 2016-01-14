@@ -8,6 +8,11 @@ use pinst\connection\Connection;
 
 class BaseHandel extends Object implements HandelInterface
 {
+    const SCHEME_WEBSOCKET         = 'ws';
+    const SCHEME_WEBSOCKET_SECURE  = 'wss';
+    const SCHEME_UNDERLYING        = 'tcp';
+    const SCHEME_UNDERLYING_SECURE = 'tls';
+
     protected $connections = [];
 
     /**
