@@ -626,6 +626,7 @@ display: none;
             }
         }
     }
+
     $(function(){
         var url = "ws://192.168.1.109:3927";
         var isLogin = false;

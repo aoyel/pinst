@@ -76,10 +76,7 @@ class WebSocketHandel extends BaseHandel
             $prevBufferLength = $connection->getProperty(self::WEB_SOCKET_BUFFER_LENGTH);
             $prevBuffer = $connection->getProperty(self::WEB_SOCKET_BUFFER);
             $prevBuffer = $prevBuffer.$data;
-            if(strlen($prevBuffer) == $prevBufferLength){
-                $this->cleanFrameCache($connection);
-                $this->processFrame($server,$connection,$prevBuffer);
-            }elseif(strlen($prevBuffer) < $connection){
+            if(strlen($prevBuffer) < $connection){
                 $connection->setProperty(self::WEB_SOCKET_BUFFER,$prevBuffer);
                 return true;
             }else{
@@ -137,27 +134,28 @@ class WebSocketHandel extends BaseHandel
             case self::TYPE_BINARY:
                 break;
             case self::TYPE_CLOSE:{
-                    $this->cleanFrameCache($connection);
                     if(APP_DEBUG){
                         Console::info("receive client[{$client_id}] close package");
                     }
+                    $this->cleanFrameCache($connection);
                     $this->close($connection,self::CLOSE_NORMAL);
                     $connection->close();
                 }
                 return false;
             case self::TYPE_PING:{
-                    $this->cleanFrameCache($connection);
                     if(APP_DEBUG){
                         Console::info("receive client[{$client_id}] ping package");
                     }
+                    $this->cleanFrameCache($connection);
+                    $connection->send(pack('H*', '8a00'));
                 }
-                $connection->send(pack('H*', '8a00'));
+
                 break;
             case self::TYPE_PONG:{
-                    $this->cleanFrameCache($connection);
                     if(APP_DEBUG){
                         Console::info("receive client[{$client_id}] pong package");
                     }
+                    $this->cleanFrameCache($connection);
                 }
                 break;
             default:{
@@ -192,8 +190,9 @@ class WebSocketHandel extends BaseHandel
             $dataLength = $pack[1]*4294967296 + $pack[2];
         }
         $frameLength = $headerLength + $dataLength;
-        Console::info("buffer length:{$bufferLength}\tdata length:{$dataLength}\theader length:{$headerLength}\tframe length:{$frameLength}\t");
-
+        if(APP_DEBUG){
+            Console::info("buffer length:{$bufferLength}\tdata length:{$dataLength}\theader length:{$headerLength}\tframe length:{$frameLength}\t");
+        }
         /**
          * package is
          */
