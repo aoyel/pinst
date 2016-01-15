@@ -40,7 +40,13 @@ class WebSocketHandel extends BaseHandel
     const CLOSE_UNEXPECTED        = 1011;
     const CLOSE_RESERVED_TLS      = 1015;
 
+    const WEB_SOCKET_IS_HAND_SHAKE = "ws_is_hand_shake";
+    const WEB_SOCKET_BUFFER_LENGTH = "ws_length";
+    const WEB_SOCKET_BUFFER = "ws_buffer";
+    const WEB_SOCKET_IS_FINISH = "ws_finish";
+
     protected $max_frame_size = 2097152;
+    protected $frameCache = [];
     const MAGIC_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 
@@ -49,28 +55,56 @@ class WebSocketHandel extends BaseHandel
         if(empty($data)){
             $this->close($connection,self::CLOSE_RESERVED_NONE);
         }
-        if($connection->getProperty("isHandShake") == false){
+        if($connection->getProperty(self::WEB_SOCKET_IS_HAND_SHAKE) == false){
             $this->handShake($connection,$data);
             return false;
         }
+        return true;
+    }
 
-        $this->processFrame($server,$connection,$data);
-
-        $this->afterReceive($server,$connection,$from_id,$data);
-        return false;
+    public function onReceive(\swoole_server $server, $client_id, $from_id, $data)
+    {
+        $connection = $this->getConnection($client_id);
+        if(!$this->beforeReceive($server, $connection, $from_id, $data)){
+            return;
+        }
+        /**
+         * process prev package
+         */
+        $prev_finish = $connection->getProperty(self::WEB_SOCKET_IS_FINISH);
+        if($prev_finish === false){
+            $prevBufferLength = $connection->getProperty(self::WEB_SOCKET_BUFFER_LENGTH);
+            $prevBuffer = $connection->getProperty(self::WEB_SOCKET_BUFFER);
+            $prevBuffer = $prevBuffer.$data;
+            if(strlen($prevBuffer) == $prevBufferLength){
+                $this->cleanFrameCache($connection);
+                $this->processFrame($server,$connection,$prevBuffer);
+            }elseif(strlen($prevBuffer) < $connection){
+                $connection->setProperty(self::WEB_SOCKET_BUFFER,$prevBuffer);
+                return true;
+            }else{
+                $this->cleanFrameCache($connection);
+                $this->processFrame($server,$connection,$prevBuffer);
+            }
+        }else{
+            $this->processFrame($server,$connection,$data);
+        }
+        $this->afterReceive($server, $connection, $from_id, $data);
     }
 
     protected function handShake($connection,$data){
         $key = null;
+        var_dump($data);
         if (preg_match("/Sec-WebSocket-Key: (.*)\r\n/", $data, $match)) {
             $key = $match[1];
         }else{
             $this->close($connection,self::CLOSE_PROTOCOL_ERROR);
         }
         $acceptKey = base64_encode(sha1($key.self::MAGIC_GUID, true));
-        $headerString = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept:{$acceptKey}\r\n\r\n";
-        $connection->setProperty("isHandShake",true);
-        return $connection->send($headerString);
+        $headerString = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {$acceptKey}\r\n\r\n";
+        $connection->send($headerString);
+        $connection->setProperty(self::WEB_SOCKET_IS_HAND_SHAKE,true);
+        return true;
     }
 
     protected function close($connection,$status){
@@ -84,9 +118,8 @@ class WebSocketHandel extends BaseHandel
      * @return bool|int
      */
     protected function processFrame($server,$connection,$buffer){
+        $client_id = $connection->getId();
         $bufferLength = strlen($buffer);
-        Console::info("buffer len:{$bufferLength}");
-
         $dataLength = ord($buffer[1]) & 127;
         $firstByte = ord($buffer[0]);
         $fin = $firstByte >>7 & 0x1;
@@ -94,8 +127,8 @@ class WebSocketHandel extends BaseHandel
         $rsv1 = ($firstByte >> 6) & 0x1;
         $rsv2 = ($firstByte >> 5) & 0x1;
         $rsv3 = ($firstByte >> 4) & 0x1;
-
         $opcode = $firstByte & 0xf;
+
         switch($opcode){
             case self::TYPE_CONTINUATION:
                 break;
@@ -103,24 +136,46 @@ class WebSocketHandel extends BaseHandel
                 break;
             case self::TYPE_BINARY:
                 break;
-            case self::TYPE_CLOSE:
-                $this->close($connection,self::CLOSE_NORMAL);
-                $connection->close();
+            case self::TYPE_CLOSE:{
+                    $this->cleanFrameCache($connection);
+                    if(APP_DEBUG){
+                        Console::info("receive client[{$client_id}] close package");
+                    }
+                    $this->close($connection,self::CLOSE_NORMAL);
+                    $connection->close();
+                }
                 return false;
-            case self::TYPE_PING:
+            case self::TYPE_PING:{
+                    $this->cleanFrameCache($connection);
+                    if(APP_DEBUG){
+                        Console::info("receive client[{$client_id}] ping package");
+                    }
+                }
                 $connection->send(pack('H*', '8a00'));
                 break;
-            case self::TYPE_PONG:
+            case self::TYPE_PONG:{
+                    $this->cleanFrameCache($connection);
+                    if(APP_DEBUG){
+                        Console::info("receive client[{$client_id}] pong package");
+                    }
+                }
                 break;
-            default :
-                $this->close($connection,self::CLOSE_UNEXPECTED);
+            default:{
+                    if(APP_DEBUG){
+                        Console::warning("receive client[{$client_id}] error package,opcode is:{$opcode}");
+                    }
+                    $this->cleanFrameCache($connection);
+                    $this->close($connection,self::CLOSE_UNEXPECTED);
+                }
                 return false;
         }
         $headerLength = 6;
-
         if($dataLength == 126){
             $headerLength = 8;
             if($headerLength > $bufferLength){
+                if(APP_DEBUG){
+                    Console::warning("get[{$client_id}] package header[$headerLength] length long to buffer[$bufferLength] length");
+                }
                 return false;
             }
             $pack = unpack('ntotal_len', substr($buffer, 2, 2));
@@ -128,63 +183,61 @@ class WebSocketHandel extends BaseHandel
         }else if($dataLength == 127){
             $headerLength = 14;
             if($headerLength > $bufferLength){
+                if(APP_DEBUG){
+                    Console::warning("get[{$client_id}] package header[$headerLength] length long to buffer[$bufferLength] length");
+                }
                 return false;
             }
             $pack = unpack('N2', substr($buffer, 2, 8));
             $dataLength = $pack[1]*4294967296 + $pack[2];
         }
-
         $frameLength = $headerLength + $dataLength;
+        Console::info("buffer length:{$bufferLength}\tdata length:{$dataLength}\theader length:{$headerLength}\tframe length:{$frameLength}\t");
 
+        /**
+         * package is
+         */
         if($frameLength == $bufferLength){
             $data = $this->decode($connection,$buffer);
-            $this->onMessage($server,$connection,$data);
+            if($fin){
+                $this->onMessage($server,$connection,$data);
+            }else{
+                Console::warning("get error package from client[{$client_id}]");
+            }
         }elseif($frameLength < $bufferLength){
-            /**
-             * get package to long
-             */
             $data = substr($buffer,0,$frameLength);
-            $data = $this->decode($connection,$buffer);
-            $this->onMessage($server,$connection,$data);
+            $data = $this->decode($connection,$data);
+            if($fin){
+                $this->onMessage($server,$connection,$data);
+            }else{
+                Console::warning("get error package from client[{$client_id}]");
+            }
             return $this->processFrame($server,$connection,substr($buffer, $frameLength));
         }else{
-            /**
-             * get package to short
-             */
-            Console::warning("get package to short");
+            $connection->setProperty(self::WEB_SOCKET_IS_FINISH,false);
+            $connection->setProperty(self::WEB_SOCKET_BUFFER_LENGTH,$dataLength);
+            $connection->setProperty(self::WEB_SOCKET_BUFFER,$buffer);
+        }
+    }
+
+    /**
+     * set frame was finish
+     * @param \pinst\connection\Connection $connection
+     */
+    protected function cleanFrameCache($connection){
+        if($connection->hasProperty(self::WEB_SOCKET_IS_FINISH)){
+            $connection->setProperty(self::WEB_SOCKET_IS_FINISH,true);
+        }
+        if($connection->hasProperty(self::WEB_SOCKET_BUFFER)){
+            $connection->setProperty(self::WEB_SOCKET_BUFFER,null);
+        }
+        if($connection->hasProperty(self::WEB_SOCKET_BUFFER_LENGTH)){
+            $connection->setProperty(self::WEB_SOCKET_BUFFER_LENGTH,0);
         }
     }
 
     protected function decode($connection,$buffer){
-        $id = $connection->getId();
         $length = ord($buffer[1]) & 127;
-        $firstByte = ord($buffer[0]);
-        $is_fin_frame = $firstByte>>7;
-        $flag = $firstByte & 0xf;
-
-        switch($flag)
-        {
-            case self::TYPE_CONTINUATION:
-                break;
-            case self::TYPE_TEXT: // text data
-                break;
-            case self::TYPE_BINARY:  // binary data
-                break;
-            case self::TYPE_CLOSE: // close package
-                $this->close($connection,self::CLOSE_NORMAL);
-                $connection->close();
-                return false;
-            case self::TYPE_PING: // ping package
-                $connection->send(pack('H*', '8a00'));
-                break;
-            case self::TYPE_PONG:  // pong package
-                break;
-            default : // error flag
-                \Pinst::error("get error data package from client[$id]");
-                $connection->close();
-                return false;
-        }
-
         if($length == 126) {
             $masks = substr($buffer, 4, 4);
             $data = substr($buffer, 8);
@@ -213,7 +266,7 @@ class WebSocketHandel extends BaseHandel
     public function beforeSend($client_id,&$content)
     {
         $connection = $this->getConnection($client_id);
-        if($connection->getProperty("isHandShake")){
+        if($connection->getProperty(self::WEB_SOCKET_IS_HAND_SHAKE)){
             $content = $this->encode($content);
         }
         return true;

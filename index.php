@@ -12,11 +12,14 @@
     <![endif]-->
 
     <style>
-html{
-    height: 100%;
-}
+        * {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
         html {
-    font-family: sans-serif;
+            height: 100%;
+            font-family: sans-serif;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
         }
@@ -317,9 +320,9 @@ display: none;
         }
 
         .form-control{
-    display: block;
-    width: 100%;
-    height: 34px;
+            display: block;
+            width: 100%;
+            height: 34px;
             padding: 6px 12px;
             font-size: 14px;
             line-height: 1.42857143;
@@ -337,7 +340,7 @@ display: none;
 
         textarea.form-control,
         input.form-control{
-    border-radius: 0;
+            border-radius: 0;
             box-shadow: none;
             background: none;
             color: white;
@@ -411,7 +414,7 @@ display: none;
         }
 
         .msg-item img.avatar{
-    width: 40px;
+            width: 40px;
             height:40px;
             margin:0 .5em;
             vertical-align: top;
@@ -582,7 +585,6 @@ display: none;
             b.push(callback);
             this.eventMap[event] = b;
         }
-
         this.toggle = function(event,param){
             var cs = null;
             if(this.eventMap.hasOwnProperty(event)){
@@ -600,21 +602,23 @@ display: none;
         this.bindEvent = function(){
             var _this = this;
             _this.ws.onopen = function(event){
-
                 _this.log(event);
                 if(event.type == "open"){
                     _this.isopen = true;
                 }
                 _this.toggle("open",event);
             }
+
             _this.ws.onerror = function(event){
                 _this.log(event);
                 _this.toggle("error",event);
             }
+
             _this.ws.onmessage = function(event){
                 _this.log(event);
                 _this.toggle("message",event);
             }
+
             _this.ws.onclose = function(event){
                 _this.log(event);
                 _this.isopen = false;
@@ -623,7 +627,6 @@ display: none;
         }
     }
     $(function(){
-
         var url = "ws://192.168.1.109:3927";
         var isLogin = false;
         var panel = $(".chat-panel .wrap-container");
@@ -732,7 +735,6 @@ display: none;
             senderPanel.hide();
         })
     })
-
     </script>
 </body>
 </html>

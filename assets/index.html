@@ -621,7 +621,7 @@
     }
 
     $(function(){
-        var url = "ws://127.0.0.1:3927";
+        var url = "ws://192.168.1.109:3927";
         var isLogin = false;
         var panel = $(".chat-panel .wrap-container");
         var btnSend = $(".btn-send");
@@ -686,17 +686,29 @@
                 msgContent.val("");
             });
 
+            /**
+             * just for test
+             */
             if(content == "100"){
                 for(i = 0; i < 100;i++){
                     s.send(buildMsg(i+"","message"));
                 }
             }
-        });
+            /**
+             * just for test
+             */
+            if(content == "10"){
+                str = "";
+                for(i = 0; i < 1024*100;i++){
+                    str += "A";
+                }
+                s.send(str);
+            }
 
+        });
         s.on("message",function(data){
             processMessage(data.data);
         })
-
         var processMessage = function(data){
             data = jQuery.parseJSON(data);
             if(data.action == "login"){

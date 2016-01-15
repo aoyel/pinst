@@ -17,6 +17,7 @@ class ChatHandel extends WebSocketHandel
         if(empty($data)){
             return false;
         }
+
         $action = $data['action'];
         switch($action){
             case "login":{
@@ -41,7 +42,8 @@ class ChatHandel extends WebSocketHandel
 
     protected function doLogin($connection,$data){
         $connection->setProperty("name",$data['data']);
-        $connection->send($this->buildMessage("ok","login"));
+        $msg = $this->buildMessage("ok","login");
+        $connection->send($msg);
         \Pinst::$app->server->broadcast(
             $this->buildMessage("{$data['data']}登陆系统","notify"),
             $connection->getId()
